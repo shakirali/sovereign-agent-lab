@@ -103,7 +103,11 @@ graph TD;
 
 # Compare the LangGraph graph to exercise3_rasa/data/rules.yml. Min 30 words.
 TASK_D_COMPARISON = """
-FILL ME IN
+The LangGraph flows shows that the LLM makes the decision and calls the tools. There is no 
+representation of the flow. It is not clear what LLM is actually doing from the graph.
+
+The Rasa rules.yml shows a clear flow. The LLM decides the flow which is either booking process
+or out of scope response. It is easy to understand the whole flow just by looking at the graph.
 """
 
 # ── Reflection ─────────────────────────────────────────────────────────────
@@ -112,5 +116,14 @@ FILL ME IN
 # Must reference a specific behaviour from your run.
 
 MOST_SURPRISING = """
-FILL ME IN
+The unexpected thing that I faced was the agent response for the scenaroio 1. It seems that
+the response is not complete and it is cut off. 
+[AI]
+  The function calls are as follows:
+
+1. `check_pub_availability` with arguments `pub_name="The Bow Bar"`, `required_capacity=160`, and `requires_vegan=True`. This checks if The Bow Bar can accommodate 160 vegan guests.
+
+2. Since The Bow Bar does not meet the requirements, we then call `check_pub_availability` with arguments `pub_name="The Haymarket Vaults"`, `required_capacity=160`, and `requires_vegan=True`. This checks if The Haymarket Vaults can accommodate 160 vegan guests.
+
+3. Next, we call ...
 """
