@@ -35,9 +35,10 @@ about failures depends entirely on what these functions return.
 
 import json
 import os
+
 import requests
-from openai import OpenAI
 from langchain_core.tools import tool
+from openai import OpenAI
 
 # ─── Venue database ───────────────────────────────────────────────────────────
 # In Week 2 this gets replaced with a real web search.
@@ -89,11 +90,13 @@ def check_pub_availability(
     """
     venue = VENUES.get(pub_name)
     if not venue:
-        return json.dumps({
-            "success": False,
-            "error": f"Venue not found: '{pub_name}'",
-            "known_venues": list(VENUES.keys()),
-        })
+        return json.dumps(
+            {
+                "success": False,
+                "error": f"Venue not found: '{pub_name}'",
+                "known_venues": list(VENUES.keys()),
+            }
+        )
 
     meets_all = (
         venue["capacity"] >= required_capacity
@@ -101,15 +104,17 @@ def check_pub_availability(
         and venue["status"] == "available"
     )
 
-    return json.dumps({
-        "success": True,
-        "pub_name": pub_name,
-        "address": venue["address"],
-        "capacity": venue["capacity"],
-        "vegan": venue["vegan"],
-        "status": venue["status"],
-        "meets_all_constraints": meets_all,
-    })
+    return json.dumps(
+        {
+            "success": True,
+            "pub_name": pub_name,
+            "address": venue["address"],
+            "capacity": venue["capacity"],
+            "vegan": venue["vegan"],
+            "status": venue["status"],
+            "meets_all_constraints": meets_all,
+        }
+    )
 
 
 @tool
@@ -135,17 +140,26 @@ def get_edinburgh_weather() -> str:
         data = resp.json().get("current", {})
         code = data.get("weather_code", -1)
         descriptions = {
-            0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy",
-            3: "Overcast", 45: "Fog", 61: "Light rain", 63: "Moderate rain",
-            65: "Heavy rain", 80: "Rain showers", 95: "Thunderstorm",
+            0: "Clear sky",
+            1: "Mainly clear",
+            2: "Partly cloudy",
+            3: "Overcast",
+            45: "Fog",
+            61: "Light rain",
+            63: "Moderate rain",
+            65: "Heavy rain",
+            80: "Rain showers",
+            95: "Thunderstorm",
         }
-        return json.dumps({
-            "success": True,
-            "temp_c": data.get("temperature_2m"),
-            "description": descriptions.get(code, f"Code {code}"),
-            "precipitation_mm": data.get("precipitation"),
-            "outdoor_ok": code in {0, 1, 2},
-        })
+        return json.dumps(
+            {
+                "success": True,
+                "temp_c": data.get("temperature_2m"),
+                "description": descriptions.get(code, f"Code {code}"),
+                "precipitation_mm": data.get("precipitation"),
+                "outdoor_ok": code in {0, 1, 2},
+            }
+        )
     except requests.exceptions.Timeout:
         return json.dumps({"success": False, "error": "Weather API timed out"})
     except Exception as exc:
@@ -160,16 +174,20 @@ def calculate_catering_cost(guests: int, price_per_head_gbp: float) -> str:
     Returns total_cost_gbp, guests, and price_per_head_gbp.
     """
     if guests <= 0 or price_per_head_gbp < 0:
-        return json.dumps({
-            "success": False,
-            "error": "guests must be > 0 and price_per_head_gbp must be >= 0",
-        })
-    return json.dumps({
-        "success": True,
-        "guests": guests,
-        "price_per_head_gbp": price_per_head_gbp,
-        "total_cost_gbp": round(guests * price_per_head_gbp, 2),
-    })
+        return json.dumps(
+            {
+                "success": False,
+                "error": "guests must be > 0 and price_per_head_gbp must be >= 0",
+            }
+        )
+    return json.dumps(
+        {
+            "success": True,
+            "guests": guests,
+            "price_per_head_gbp": price_per_head_gbp,
+            "total_cost_gbp": round(guests * price_per_head_gbp, 2),
+        }
+    )
 
 
 @tool
@@ -178,7 +196,7 @@ def generate_event_flyer(venue_name: str, guest_count: int, event_theme: str) ->
     Generate a promotional event flyer image for the confirmed Edinburgh venue.
     Call this AFTER a venue is confirmed, as the final output step.
     Returns a URL to the generated image.
-    venue_name: the confirmed pub name
+    venue_name: name of the confirmed venue, e.g. 'The Haymarket Vaults'
     guest_count: confirmed number of attendees
     event_theme: short description, e.g. 'AI Meetup, professional, Scottish'
     """
@@ -198,15 +216,19 @@ def generate_event_flyer(venue_name: str, guest_count: int, event_theme: str) ->
             n=1,
         )
         url = response.data[0].url
-        return json.dumps({
-            "success": True,
-            "prompt_used": prompt,
-            "image_url": url,
-        })
+        return json.dumps(
+            {
+                "success": True,
+                "prompt_used": prompt,
+                "image_url": url,
+            }
+        )
     except Exception as e:
-        return json.dumps({
-            "success": False,
-            "error": str(e),
-            "prompt_used": prompt,
-            "image_url": "",
-        })
+        return json.dumps(
+            {
+                "success": False,
+                "error": str(e),
+                "prompt_used": prompt,
+                "image_url": "",
+            }
+        )

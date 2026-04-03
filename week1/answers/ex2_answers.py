@@ -20,7 +20,7 @@ TASK_A_TOOLS_CALLED = [
 
 # Which venue did the agent confirm? Must be one of:
 # "The Albanach", "The Haymarket Vaults", or "none"
-TASK_A_CONFIRMED_VENUE = "The Albanach and The Haymarket Vaults"
+TASK_A_CONFIRMED_VENUE = "The Albanach"
 
 # Total catering cost the agent calculated. Float, e.g. 5600.0
 # Write 0.0 if the agent didn't calculate it.
