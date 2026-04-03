@@ -44,8 +44,8 @@ The agent picks up the new capability automatically — no other changes needed.
     ]
 """
 
-import json
 import os
+
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
@@ -54,10 +54,10 @@ from langgraph.prebuilt import create_react_agent
 # This import path is why the project structure matters —
 # sovereign_agent/ is a Python package that can be imported from anywhere
 from sovereign_agent.tools.venue_tools import (
-    check_pub_availability,
-    get_edinburgh_weather,
     calculate_catering_cost,
+    check_pub_availability,
     generate_event_flyer,
+    get_edinburgh_weather,
 )
 
 load_dotenv()
@@ -86,10 +86,19 @@ TOOLS = [
 
 # Build the agent once at module load time.
 # Rebuilding it on every call would be wasteful.
-_agent = create_react_agent(llm, TOOLS)
+_agent = create_react_agent(
+    llm,
+    TOOLS,
+    prompt=(
+        "You are a research assistant. Always use the available tools to gather "
+        "information before responding. Never answer from memory alone. "
+        "Work through tasks step by step, calling one tool at a time."
+    ),
+)
 
 
 # ─── Public interface ─────────────────────────────────────────────────────────
+
 
 def run_research_agent(task: str, max_turns: int = 8) -> dict:
     """
@@ -115,23 +124,23 @@ def run_research_agent(task: str, max_turns: int = 8) -> dict:
     )
 
     tool_calls_made = []
-    full_trace      = []
-    final_answer    = ""
+    full_trace = []
+    final_answer = ""
 
     for m in result["messages"]:
-        role    = getattr(m, "type", "unknown")
+        role = getattr(m, "type", "unknown")
         content = m.content
 
-        # Tool-call messages have structured list content
-        if isinstance(content, list):
-            for block in content:
-                if isinstance(block, dict) and block.get("type") == "tool_use":
-                    entry = {
-                        "tool": block["name"],
-                        "args": block.get("input", {}),
-                    }
-                    tool_calls_made.append(entry)
-                    full_trace.append({"role": "tool_call", **entry})
+        # LangChain OpenAI-compatible format: tool calls are in message.tool_calls
+        tool_calls = getattr(m, "tool_calls", [])
+        if tool_calls:
+            for tc in tool_calls:
+                entry = {
+                    "tool": tc["name"],
+                    "args": tc.get("args", {}),
+                }
+                tool_calls_made.append(entry)
+                full_trace.append({"role": "tool_call", **entry})
             continue
 
         if content:
@@ -140,8 +149,8 @@ def run_research_agent(task: str, max_turns: int = 8) -> dict:
                 final_answer = str(content)
 
     return {
-        "final_answer":    final_answer,
+        "final_answer": final_answer,
         "tool_calls_made": tool_calls_made,
-        "full_trace":      full_trace,
-        "success":         bool(final_answer),
+        "full_trace": full_trace,
+        "success": bool(final_answer),
     }
